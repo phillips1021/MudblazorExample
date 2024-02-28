@@ -1,0 +1,41 @@
+﻿@page "/upload"
+@using System.Diagnostics
+@rendermode InteractiveServer
+
+
+
+<MyMudProviders />
+
+<PageTitle>Upload File Example</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Upload File</MudText>
+
+<MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
+    <ButtonTemplate>
+        <MudButton HtmlTag="label"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.CloudUpload"
+                   for="@context.Id">
+            Upload Files
+        </MudButton>
+    </ButtonTemplate>
+</MudFileUpload>
+
+@code {
+
+    IList<IBrowserFile> files = new List<IBrowserFile>();
+
+    private void UploadFiles(IBrowserFile file)
+    {
+        files.Add(file);
+
+        Debug.WriteLine("Number of files uploaded is {0}", files.Count);
+
+        //Upload the file to the Azure Blob Storage
+
+    
+
+    }
+    
+}
