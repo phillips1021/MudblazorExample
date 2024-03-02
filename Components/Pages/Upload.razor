@@ -1,41 +1,77 @@
 ﻿@page "/upload"
 @using System.Diagnostics
+@using System.IO;
+@using Microsoft.Extensions.Configuration;
+@using Azure.Storage.Blobs.Models;
+@using Azure.Storage.Blobs;
 @rendermode InteractiveServer
+
 
 
 
 <MyMudProviders />
 
-<PageTitle>Upload File Example</PageTitle>
+<PageTitle>Upload Clip</PageTitle>
 
-<MudText Typo="Typo.h3" GutterBottom="true">Upload File</MudText>
+<MudFileUpload T="IBrowserFile" FilesChanged="UploadFile" Accept=".jpg, .png, .jpeg, .mp4" MaximumFileCount="1">
 
-<MudFileUpload T="IBrowserFile" FilesChanged="UploadFiles">
     <ButtonTemplate>
         <MudButton HtmlTag="label"
                    Variant="Variant.Filled"
                    Color="Color.Primary"
                    StartIcon="@Icons.Material.Filled.CloudUpload"
                    for="@context.Id">
-            Upload Files
+            Upload Clip
         </MudButton>
     </ButtonTemplate>
 </MudFileUpload>
+<MudText Typo="@Typo.h6">Clip files of type .jpg, .png or .mp4 only.</MudText>
+
+@if (files != null && files.Count() > 0)
+{
+    <MudText Typo="@Typo.h6">@files.Count() File@(files.Count() == 1 ? "" : "s"):</MudText>
+    <MudList>
+        @foreach (var file in files)
+        {
+            <MudListItem Icon="@Icons.Material.Filled.AttachFile" @key="@file">
+                Clip Uploaded - @file.Name <code>@file.Size bytes</code>
+            </MudListItem>
+        }
+    </MudList>
+}
+
 
 @code {
 
     IList<IBrowserFile> files = new List<IBrowserFile>();
 
-    private void UploadFiles(IBrowserFile file)
+    [Inject]
+    private IConfiguration _configuration { get; set; }
+    
+
+    private async Task UploadFile(IBrowserFile file)
     {
+
         files.Add(file);
 
         Debug.WriteLine("Number of files uploaded is {0}", files.Count);
 
         //Upload the file to the Azure Blob Storage
 
-    
+        string blobstorageconnection = _configuration["BlobStorage:key"];
+
+        //string blobstorageconnection = "DefaultEndpointsProtocol=https;AccountName=stfmconference;AccountKey=cPc6sBg/PFKe1JY+UaXr/pm7VtrG713alWZeLJjPNtIJIx5jBvP5IT4nXu0NTnlkjNc04WRCJaDBZHY/74g+tA==;EndpointSuffix=core.windows.net";
+
+        string blobContainer = "testupload";
+
+        BlobContainerClient blobContainerClient = new BlobContainerClient(blobstorageconnection, blobContainer);
+
+        var trustedFileName = file.Name;
+
+        await blobContainerClient.UploadBlobAsync(trustedFileName, file.OpenReadStream());
 
     }
     
 }
+
+
